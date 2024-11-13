@@ -1,3 +1,9 @@
+/*
+    Best attemped in a dark room with a lit background as cameras tend to overexpose
+
+    blah blah blah docstring
+*/
+
 import processing.video.*;
 
 Capture cam;
@@ -81,9 +87,9 @@ void processingScreen(String message) {
         float r = red(currentColour);
         float g = green(currentColour);
         float b = blue(currentColour);
-
+        float brightness = r + g + b / 3;
         noStroke();
-        fill(r, g, b);
+        fill(brightness);
         square(posX * sqWidth, posY * sqHeight, sqWidth);
 
         posX++;
