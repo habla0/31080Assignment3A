@@ -24,6 +24,8 @@ void setup() {
 
 void captureEvent(Capture cam) {
     if (cam.available() == true) {
+        plate.copy(cam, 0, 0, cam.width, cam.height, 0, 0, plate.width, plate.height);
+        plate.updatePixels();
         cam.read();
     }
 
@@ -41,21 +43,20 @@ void draw() {
 // Take in input to append it to the string. Once ENTER is pressed
 // the user should duck as the camera needs to see the user's background
 void keyPressed() {
-    message += key;
-    message = message.toUpperCase();
-
-    // Remember the background and switch to the next screen.
-    if (key == ENTER) {
-        areWeProcessing = true;
-        plate.copy(cam, 0, 0, cam.width, cam.height, 0, 0, plate.width, plate.height);
-        plate.updatePixels();
-    }
-
     // Purge the string if you make a mistake (no I'm not bothered to import StringBuilder)
     if (key == BACKSPACE) {
         message = "";
     }
-    
+
+    // Remember the background and switch to the next screen.
+    if (key == ENTER) {
+        message += " ";
+        areWeProcessing = true;
+    }
+
+    message += key;
+    message = message.toUpperCase();
+
 }
 
 // Display the text
@@ -74,11 +75,13 @@ void processingScreen(String message) {
     float sqWidth = width / cam.width;
     float sqHeight = height / cam.height;
 
-    // Keep track of the position
+    // Keep track of the coordinates in the array
     int posY = 0;
     int posX = 0;
 
     int threshold = 50; // Threshold to detect colour change of a pixel
+
+    int msgIndex = 0;
 
     cam.loadPixels();
     plate.loadPixels();
@@ -107,23 +110,22 @@ void processingScreen(String message) {
         float g1 = green(prevColour);
         float b1 = blue(prevColour);
 
-        // Detect colour change in pixels using the distance formula (thanks Daniel Shiffman)
+        // Detect colour change in pixels using the distance formula (thanks Daniel Shiffman for this idea)
         double distance = Math.sqrt((r-r1)*(r-r1) + (g-g1)*(g-g1) + (b-b1)*(b-b1));
-        // Pixels that are different from the plate image will be coloured white
+
+        // Pixels that are different from the plate image will be coloured red
         if (distance > threshold) { 
-            //cam.pixels[posX+posY*cam.width] = color(255);
-            cam.pixels[x] = color(255);
+            currentColour = color(255, 0, 0);
         }
 
-        // // Draw the scene as ASCII
+        // Draw the scene as ASCII
         float brightness = r + g + b / 3; // Average of colours equals luminosity
         int brightIndex = floor(map(brightness, 0, 255, 0, brightStr.length() - 1));
-
+        
+        // Boundary checking
         if (brightness > 255) {
             brightness = 255;
         }
-
-        // Ensure I don't get index errors
         if (brightIndex < 0) {
             brightIndex = 0;
         }
@@ -131,25 +133,24 @@ void processingScreen(String message) {
             brightIndex = brightStr.length()-1;
         }
 
-        if (cam.pixels[x] < 255) {
-            textSize(sqWidth);
-            textAlign(CENTER, CENTER);
-            text(brightStr.charAt(brightIndex), posX * sqWidth, posY * sqHeight);
+        textSize(sqWidth);
+        textAlign(CENTER, CENTER);
+        if (currentColour == color(255, 0, 0)) {
+            text(message.charAt(msgIndex), posX * sqWidth, posY * sqHeight);
+            fill(255, 0, 0);
+            msgIndex++;
         } else {
-            textSize(sqWidth);
-            textAlign(CENTER, CENTER);
-            text(message.charAt(messageIndex), posX * sqWidth, posY * sqHeight);
+            text(brightStr.charAt(brightIndex), posX * sqWidth, posY * sqHeight);
+            fill(255);
         }
- 
-        //println(brightness);
 
+        // Reset msgIndex at the end of the message
+        if (msgIndex >= message.length() - 1) {
+            msgIndex = 0;
+        }
+        
         posX++;
     }
     updatePixels();
 
-}
-
-char displayMessageChar() {
-    char a = 'a';
-    return a;
 }
