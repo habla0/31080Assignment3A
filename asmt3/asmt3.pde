@@ -1,11 +1,20 @@
 import processing.video.*;
+import processing.sound.*;
 
 Capture cam;
 boolean areWeProcessing;
 PImage plate;
+PFont font;
+
+SqrOsc square;
+Env env;
+
+// Trust me this makes sense
+int soundFreq = 0;
+int delay = 0; 
+int redness = 0;
 String brightStr = " `.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI319d4VOGHm8RD#$0MNWQ%&@"; // ASCII string
 String message = "";
-PFont font;
 
 void setup() {
     areWeProcessing = false;
@@ -20,12 +29,15 @@ void setup() {
     font = createFont("Cascadia Code", 10);
     textFont(font);
 
+    // Set sound
+    square = new SqrOsc(this);
+    env = new Env(this);
+
 }
 
 void captureEvent(Capture cam) {
     if (cam.available() == true) {
-        plate.copy(cam, 0, 0, cam.width, cam.height, 0, 0, plate.width, plate.height);
-        plate.updatePixels();
+        frameDelay();
         cam.read();
     }
 
@@ -37,25 +49,44 @@ void draw() {
     } else if (areWeProcessing) {
         processingScreen(message);
     }
-    
+
 }
 
 // Take in input to append it to the string. Once ENTER is pressed
 // the user should duck as the camera needs to see the user's background
 void keyPressed() {
-    // Purge the string if you make a mistake (no I'm not bothered to import StringBuilder)
-    if (key == BACKSPACE) {
-        message = "";
-    }
+    switch (keyCode) {
+        case ENTER: // Remember the background and switch to the next screen
+            String newMsg = message.replace(" ", "");
 
-    // Remember the background and switch to the next screen.
-    if (key == ENTER) {
-        message += " ";
-        areWeProcessing = true;
-    }
+            for (int c = 0; c < newMsg.length(); ++c) {
+                soundFreq += newMsg.charAt(c);
+            }
+            soundFreq /= newMsg.length();
+            println(soundFreq);
 
-    message += key;
-    message = message.toUpperCase();
+            message += " ";
+            areWeProcessing = true;
+            break;
+        case BACKSPACE: // Purge the string if you make a mistake (no I'm not bothered to import StringBuilder)
+            message = " ";
+            break;
+        case RIGHT: // Change the delay timing for taking the plate image
+            if (delay < 1) {
+                delay++;
+            }
+            break;
+        case LEFT:
+            if (delay > 0) {
+                delay--;
+            }
+            break;
+        default:
+            if (!areWeProcessing && keyCode != SHIFT) {
+                message += key;
+                message = message.toUpperCase();
+            }
+    }
 
 }
 
@@ -65,12 +96,13 @@ void inputScreen() {
     textSize(15);
     textAlign(CENTER, CENTER);
     text(message, width / 2, height / 2);
+
 }
 
 // Process the screen
 void processingScreen(String message) {
     background(0);
-
+    
     // Make sure that the characters display within a square boundary
     float sqWidth = width / cam.width;
     float sqHeight = height / cam.height;
@@ -144,6 +176,10 @@ void processingScreen(String message) {
             fill(255);
         }
 
+        int timeStart = millis();
+
+        soundProcessing(currentColour);
+
         // Reset msgIndex at the end of the message
         if (msgIndex >= message.length() - 1) {
             msgIndex = 0;
@@ -152,5 +188,36 @@ void processingScreen(String message) {
         posX++;
     }
     updatePixels();
+
+}
+
+// Strangely convoluted solution to a problem that doesn't exist
+// I am just bored and am throwing things together (this doesn't work correctly half the time istg)
+void frameDelay() {
+    int start = millis();
+    delay(delay);
+    int stop = millis();
+
+    if (stop - start <= 1) {
+        plate.copy(cam, 0, 0, cam.width, cam.height, 0, 0, plate.width, plate.height);
+        plate.updatePixels();
+    }
+    
+}
+
+// Simple function to determine the number of red pixels and to play sound accordingly
+void soundProcessing(color c) {
+    if (c == color(255, 0, 0)) {
+        redness += 10;
+    } else if (c != color(255, 0, 0) && redness > 0) {
+        redness--;
+    }
+    //println(redness);
+
+    //triangle.freq(195.998);
+    square.freq(soundFreq);
+    square.play();
+    //pulse.freq(123.471);
+   
 
 }
