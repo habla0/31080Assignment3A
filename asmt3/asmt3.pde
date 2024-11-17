@@ -91,7 +91,7 @@ void keyPressed() {
             break;
         case RIGHT: // Change the delay timing for taking the plate image
             if (delay < 1) {
-                delay++;
+                delay++; // CURSE YOU macOS (this breaks idk why)
             }
             break;
         case LEFT:
