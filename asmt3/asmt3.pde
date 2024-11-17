@@ -6,19 +6,25 @@ boolean areWeProcessing;
 PImage plate;
 PFont font;
 
-SqrOsc square;
-Env env;
+SqrOsc[] square;
+float[] soundFreqs;
+int freqNum;
 
-// Trust me this makes sense
-int soundFreq = 0;
-int delay = 0; 
-int redness = 0;
-String brightStr = " `.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI319d4VOGHm8RD#$0MNWQ%&@"; // ASCII string
-String message = "";
+int delay; 
+int movement;
+
+String brightStr; 
+String message;
 
 void setup() {
-    areWeProcessing = false;
     size(1280, 960);
+    areWeProcessing = false;
+
+    brightStr = " `.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI319d4VOGHm8RD#$0MNWQ%&@"; // ASCII string
+    message = "";
+
+    delay = 0;
+    movement = 0;
 
     // Decrease resolution for the camera
     cam = new Capture(this, 80, 60);
@@ -30,8 +36,13 @@ void setup() {
     textFont(font);
 
     // Set sound
-    square = new SqrOsc(this);
-    env = new Env(this);
+    freqNum = 4;
+    square = new SqrOsc[freqNum];
+    soundFreqs = new float[freqNum];
+    for (int i = 0; i < freqNum; i++) {
+        square[i] = new SqrOsc(this);
+        square[i].amp(0.1);
+    }
 
 }
 
@@ -58,13 +69,17 @@ void keyPressed() {
     switch (keyCode) {
         case ENTER: // Remember the background and switch to the next screen
             String newMsg = message.replace(" ", "");
+            float frequency = 0.0;
 
             for (int c = 0; c < newMsg.length(); ++c) {
-                soundFreq += newMsg.charAt(c);
+                frequency += newMsg.charAt(c);
             }
-            soundFreq /= newMsg.length();
-            soundFreq *= random(1.5, 2);
-            println(soundFreq);
+            frequency /= newMsg.length();;
+            println(frequency);
+
+            for (int i = 0; i < freqNum; i++) {
+                soundFreqs[i] = frequency * (i + random(-0.5, 0.5));
+            }
 
             message += " ";
             areWeProcessing = true;
@@ -208,20 +223,24 @@ void frameDelay() {
 
 // Simple function to determine the number of red pixels and to play sound accordingly
 void soundProcessing(color c) {
-    if (c == color(255, 0, 0)) {
-        redness += 10;
-    } else if (c != color(255, 0, 0) && redness > 0) {
-        redness--;
-    }
-    //println(redness);
-    square.freq(soundFreq);
 
-    if (redness > 150) {
-        square.play();
-    } else {
-        square.stop();
+    if (c == color(255, 0, 0)) {
+        movement += 10;
+    } else if (c != color(255, 0, 0) && movement > 0) {
+        movement--;
     }
-    
-    //pulse.freq(123.471);
+    //println(movement);
+
+    if (movement > 120) {
+        for (int i = 0; i < freqNum; i++) {
+            square[i].freq(soundFreqs[i]);
+            square[i].play();
+        }
+        
+    } else {
+        for (int i = 0; i < freqNum; i++) {
+            square[i].stop();
+        }
+    }
 
 }
