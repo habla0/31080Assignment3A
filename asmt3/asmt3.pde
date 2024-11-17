@@ -26,7 +26,7 @@ void setup() {
     plate = createImage(80, 60, RGB);
 
     // Set font
-    font = createFont("Cascadia Code", 10);
+    font = createFont("JetBrains Mono", 10);
     textFont(font);
 
     // Set sound
@@ -63,6 +63,7 @@ void keyPressed() {
                 soundFreq += newMsg.charAt(c);
             }
             soundFreq /= newMsg.length();
+            soundFreq *= random(1.5, 2);
             println(soundFreq);
 
             message += " ";
@@ -213,11 +214,14 @@ void soundProcessing(color c) {
         redness--;
     }
     //println(redness);
-
-    //triangle.freq(195.998);
     square.freq(soundFreq);
-    square.play();
+
+    if (redness > 150) {
+        square.play();
+    } else {
+        square.stop();
+    }
+    
     //pulse.freq(123.471);
-   
 
 }
