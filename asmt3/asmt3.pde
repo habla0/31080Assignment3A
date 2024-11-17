@@ -18,10 +18,11 @@ String message;
 
 void setup() {
     size(1280, 960);
+    surface.setTitle("messagetoyou.exe");
     areWeProcessing = false;
 
     brightStr = " `.-':_,^=;><+!rc*/z?sLTv)J7(|Fi{C}fI319d4VOGHm8RD#$0MNWQ%&@"; // ASCII string
-    message = "";
+    message = "> ";
 
     delay = 0;
     movement = 0;
@@ -82,10 +83,11 @@ void keyPressed() {
             }
 
             message += " ";
+            message = message.substring(2);
             areWeProcessing = true;
             break;
         case BACKSPACE: // Purge the string if you make a mistake (no I'm not bothered to import StringBuilder)
-            message = " ";
+            message = "> ";
             break;
         case RIGHT: // Change the delay timing for taking the plate image
             if (delay < 1) {
@@ -109,9 +111,14 @@ void keyPressed() {
 // Display the text
 void inputScreen() {
     background(0);
-    textSize(15);
+    textSize(60);
     textAlign(CENTER, CENTER);
-    text(message, width / 2, height / 2);
+    text("SAY SOMETHING", width / 2, (height / 2) - 200);
+    text("SAY SOMETHING", width, (height / 2) - 200);
+    text("SAY SOMETHING", width - width, (height / 2) - 200);
+    textSize(25);
+    textAlign(CENTER, CENTER);
+    text(message, width / 2, (height / 2) + 100);
 
 }
 
