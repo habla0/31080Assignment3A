@@ -113,9 +113,7 @@ void inputScreen() {
     background(0);
     textSize(60);
     textAlign(CENTER, CENTER);
-    text("SAY SOMETHING", width / 2, (height / 2) - 200);
-    text("SAY SOMETHING", width, (height / 2) - 200);
-    text("SAY SOMETHING", width - width, (height / 2) - 200);
+    text("SAY SOMETHING.", width / 2, (height / 2) - 200);
     textSize(25);
     textAlign(CENTER, CENTER);
     text(message, width / 2, (height / 2) + 100);
